@@ -18,7 +18,7 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response
+from flask import Flask, request, render_template, g, redirect, Response, url_for
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -115,6 +115,7 @@ def teardown_request(exception):
 # see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
+@app.route('/index')
 @app.route('/')
 def index():
   """
@@ -221,7 +222,12 @@ def generate_table(table_name):
     '''
       table_content.append(list(result))
     cursor.close()
-    return table_content 
+    return table_content
+
+# Redirect to About
+# @app.route('/about')
+# def about():
+#   return render_template(url_for('static', filename='about.html') )
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
