@@ -1,0 +1,126 @@
+<html>
+  <style>
+    body{ 
+      font-size: 15pt;
+      font-family: arial;
+    }
+    table{ 
+       font-family: arial, sans-serif;
+       border-collapse: collapse;
+       width: 100%;
+         }
+     td, th {
+       border: 1px solid #dddddd;
+       text-align: left;
+       padding: 8px;
+            }
+     tr:nth-child(even) {
+       background-color: #dddddd;
+                        }
+  </style>
+
+
+<body>
+    <h1>Table users</h1>
+
+  <div>
+    <table>
+        {% for record in username %}
+        <tr>
+            {% for n in record %}
+            <td>{{n}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+  </div>
+
+    <h1>Table buyer</h1>
+    <div>
+      <table>
+        {% for record in buyers %}
+        <tr>
+            {% for n in record %}
+            <td>{{n}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <h1>Table seller</h1>
+    <div>
+      <table>
+        {% for record in sellers %}
+        <tr>
+            {% for n in record %}
+            <td>{{n}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+
+    <h1>Table standard_info</h1>
+    <div>
+      <table>
+        {% for record in std_info %}
+        <tr>
+            {% for n in record %}
+            <td>{{n}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <h1>Table products_post_has</h1>
+    <div>
+      <table>
+        {% for record in pro_post %}
+        <tr>
+            {% for n in record %}
+            <td>{{n}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <h1>Table order_contains_prod_makes_fb_uses</h1>
+    <div>
+      <table>
+        {% for record in order_fb %}
+        <tr>
+            {% for n in record %}
+            <td>{{n}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <h1>Table coupon</h1>
+
+    <div>
+      <table>
+        {% for record in coupon %}
+        <tr>
+            {% for n in record %}
+            <td>{{n}}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div> 
+    <!--
+<form method="POST" action="/add">
+<p>Name of new computer scientist: <input type="text" name="name"> <input type="submit" value="Add"></p>
+</form>
+-->
+
+</body>
+
+
+</html>

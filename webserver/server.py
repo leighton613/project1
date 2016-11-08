@@ -31,14 +31,14 @@ app = Flask(__name__, template_folder=tmpl_dir)
 #
 # XXX: The URI should be in the format of: 
 #
-#     postgresql://USER:PASSWORD@<IP_OF_POSTGRE_SQL_SERVER>/postgres
+#     postgresql://sw3013:35hm4@104.196.175.120/postgres
 #
 # For example, if you had username ewu2493, password foobar, then the following line would be:
 #
 #     DATABASEURI = "postgresql://ewu2493:foobar@<IP_OF_POSTGRE_SQL_SERVER>/postgres"
 #
 # Swap out the URI below with the URI for the database created in part 2
-DATABASEURI = "sqlite:///test.db"
+DATABASEURI = "postgresql://sw3013:35hm4@104.196.175.120/postgres"
 
 
 #
@@ -134,10 +134,10 @@ def index():
   #
   # example of a database query
   #
-  cursor = g.conn.execute("SELECT name FROM test")
+  cursor = g.conn.execute("SELECT username from users;")
   names = []
   for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
+    names.append(result['username'])  # can also be accessed using result[0]
   cursor.close()
 
   #
@@ -183,10 +183,45 @@ def index():
 # notice that the functio name is another() rather than index()
 # the functions for each app.route needs to have different names
 #
-@app.route('/another')
-def another():
-  return render_template("anotherfile.html")
+@app.route('/allDB')
+def allDB():
+  # Users
+  users = generate_table('users')
+  # Buyers
+  buyers = generate_table('buyer')
+  # SELLER
+  sellers = generate_table('seller')
+  # STD INFO
+  std_info = generate_table('standard_info')
+  # products_post_has
+  pro_post = generate_table('products_post_has')
+  # order_contains_prod_makes_fb_uses
+  order_fb = generate_table('order_contains_prod_makes_fb_uses')
+  # COUPON 
+  coupons = generate_table('coupon')
 
+
+  context = dict(username=users, buyers=buyers, sellers=sellers, std_info=std_info, pro_post=pro_post, order_fb=order_fb, coupon=coupons)
+  return render_template("allDBfile.html", **context)
+
+def generate_table(table_name):
+    '''
+    take a table name,
+    return a table content in a list w/o header
+    '''
+    cursor = g.conn.execute("SELECT * from %s;" % table_name)
+    cols = list(cursor.keys())
+    table_content = [cols]
+    for result in cursor:
+      '''
+      rec = []
+      for i in range(len(result)):
+        rec.append(result[i])
+      table_content.append(rec)
+    '''
+      table_content.append(list(result))
+    cursor.close()
+    return table_content 
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])

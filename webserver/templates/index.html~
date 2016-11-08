@@ -8,7 +8,7 @@
 
 
 <body>
-    <h1>Platform</h1>
+    <h1>Computer Scientists</h1>
   <div>{{data}}</div>
 
   <div>
