@@ -15,7 +15,7 @@ Author URI: http://92five.net
 	margin-left: auto;
 	margin-right: auto;
 	margin-top: 20px;
-	background:#fff url(../images/loading.gif) no-repeat 50% 50%;
+	background:#fff url(./images/loading.gif) no-repeat 50% 50%;
 }
 .theme-effe .nivo-caption {
 	height: 0px;
@@ -40,7 +40,7 @@ Author URI: http://92five.net
 	display:block;
 	width:22px;
 	height:22px;
-	background:url(../images/bullets.png) no-repeat;
+	background:url(./images/bullets.png) no-repeat;
 	text-indent:-9999px;
 	border:0;
 	margin-right:3px;
@@ -54,7 +54,7 @@ Author URI: http://92five.net
 	display:block;
 	width:30px;
 	height:30px;
-	background:url(../images/arrows.png) no-repeat;
+	background:url(./images/arrows.png) no-repeat;
 	text-indent:-9999px;
 	border:0;
 }

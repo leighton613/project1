@@ -146,27 +146,7 @@ def index():
   # pass data to a template and dynamically generate HTML based on the data
   # (you can think of it as simple PHP)
   # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
-  #
-  # You can see an example template in templates/index.html
-  #
-  # context are the variables that are passed to the template.
-  # for example, "data" key in the context variable defined below will be 
-  # accessible as a variable in index.html:
-  #
-  #     # will print: [u'grace hopper', u'alan turing', u'ada lovelace']
-  #     <div>{{data}}</div>
-  #     
-  #     # creates a <div> tag for each element in data
-  #     # will print: 
-  #     #
-  #     #   <div>grace hopper</div>
-  #     #   <div>alan turing</div>
-  #     #   <div>ada lovelace</div>
-  #     #
-  #     {% for n in data %}
-  #     <div>{{n}}</div>
-  #     {% endfor %}
-  #
+
   context = dict(data = names)
 
 
@@ -224,10 +204,40 @@ def generate_table(table_name):
     cursor.close()
     return table_content
 
-# Redirect to About
-# @app.route('/about')
-# def about():
-#   return render_template(url_for('static', filename='about.html') )
+# Products page
+@app.route('/products')
+def products():
+  cursor = g.conn.execute("WITH temp1(sid, pid, pname, price, pdscp) AS (select sid,pid,pname,price,customized_description as pdscp from products_post_has where number > 0 limit 10) select u.username,t.pname, t.price, t.pdscp,  t.sid, t.pid from users as u, seller as s, temp1 as t where u.uid=s.uid and s.sid=t.sid;")
+  prods = []
+  for record in cursor:
+    record = list(record)
+    rec = {'username':record[0], 'fb':0, 'product_name':record[1], 'price':record[2], 'product_dscp':record[3], 'sid':record[4],'pid':record[5]}
+    prods.append(rec)
+  cursor.close()
+  return render_template('products.html', products = prods)
+
+@app.route('/products/prod-<num>')
+def product_single(num):
+  # check number constraints
+  cursor = g.conn.execute("SELECT DISTINCT pid FROM products_post_has")
+  all_prods = []
+  for p in cursor:
+    if num == p:
+      cursor.close()
+      break
+  else:
+    cursor.close()
+    return render_template(url_for('static', filename='error.html'))
+    
+  # extract and assign information for this product
+  cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.customized_description, u.username, i.iid, i.brand FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%n;" % num)
+  assert cursor.rowcount == 1
+  result = cursor.first()
+  sid, pid, product_name, price, description, post_username, iid, brand = list(result)
+  
+  # extract review data for this product
+#   cursor = g.conn.execute("SELECT f. FROM order_contains_prod_makes_fb_uses f WHERE f.pid=%n" % num)
+  return render_template('product-single.html', num=num, product_name=product_name, price=price, post_username=post_username, brand=brand, description=description)
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])

@@ -209,7 +209,7 @@ blockquote {
 	font-family: 'Droid Serif', Verdana, Arial, sans-serif;
 	color:#333;
 	text-align: center;
-	background-image: url(../images/blockquote.png);
+	background-image: url(./images/blockquote.png);
 	background-repeat: no-repeat;
 	background-position: left top;
 }
@@ -219,7 +219,7 @@ blockquote {
 	color: #666;
 	text-decoration: none;
 	font-size: 14px;
-	background-image: url(../images/check.png);
+	background-image: url(./images/check.png);
 	background-position: left center;
 	background-repeat: no-repeat;
 	padding-left: 16px;
@@ -233,7 +233,7 @@ blockquote {
 	text-decoration: none;
 	font-size: 14px;
 	color: #666;
-	background-image: url(../images/dot.png);
+	background-image: url(./images/dot.png);
 	background-position: left center;
 	background-repeat: no-repeat;
 	padding-left: 20px;
@@ -248,7 +248,7 @@ blockquote {
 	text-decoration: none;
 	font-size: 14px;
 	color: #666;
-	background-image: url(../images/star.png);
+	background-image: url(./images/star.png);
 	background-position: left center;
 	background-repeat: no-repeat;
 	padding-left: 20px;
@@ -285,7 +285,7 @@ a:hover {
 	padding: 10px 5px 10px 5px;
 }
 .star-divider {
-	background-image:url(../images/star_divider.png);
+	background-image:url(./images/star_divider.png);
 	text-align: center;
 	display: block;
 	clear: both;
@@ -330,9 +330,11 @@ Header & Menu CSS
 	width: 960px;
 }
 #logo {
+	background-image:url(./images/logo.png);
 	float: left;
 	width: 100px;
-	padding: 20px 20px 20px 50px;
+	height: 80px
+	padding: 10px 10px 10px 10px;
 }
 #header-text {
 	width: 480px;
@@ -775,7 +777,7 @@ This CSS is for the project page
 	font-family: 'Droid Serif', Verdana, Arial, sans-serif;
 }
 /******************************************************************
-Blog CSS
+Products CSS
 ******************************************************************/
 
 #blog {
@@ -981,10 +983,10 @@ Blog CSS
 	height: 30px;
 	padding: 5px;
 }
-/***************************************************
+/* 
+**************************************************
 Contact CSS
-***************************************************/
-
+**************************************************
 #contact {
 	display: inline;
 	position: relative;
@@ -1057,6 +1059,7 @@ Contact CSS
 	padding-top: 80px;
 	float: right;
 }
+ */
 /******************************************************************
 This is the buttons and inputs CSS
 ******************************************************************/
