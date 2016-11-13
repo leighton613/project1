@@ -47,6 +47,7 @@
       <li><a href="/">Home</a></li>
       <li><a href="../static/about.html">About</a></li>
       <li><a class="selected" href="/products">Products →</a></li>
+      <li><a href="/profiles">Profiles</a></li>
       <li><a href="/allDB">All DB</a></li>
     </ul>
   </div>
@@ -78,11 +79,11 @@
       <h3>{{product_name}}</h3>
       
       <div class="blog-item-single-info">
-        <div class="user">{{post_username}}</div>
-        <div class="comments">6 comments</div>
+        <div class="user"><a href='/{{post_username}}'>{{post_username}}</a></div>
+        <div class="comments">{{num_fb}} reviews</div>
         <div class="tags">NOW {{price}} $</div>
       </div>
-      <div class="blog-item-single-content"> <a class="single_image" href="../static/images/products/product-{{num}}.jpg"><img src="../static/images/products/product-{{num}}.jpg" width="720" height="280" alt="blog1" /></a>
+      <div class="blog-item-single-content"> <a class="single_image" href="../static/images/products/product-{{iid}}.jpg"><img src="../static/images/products/product-{{iid}}.jpg" width="720" height="280" alt="blog1" /></a>
         <p>BRAND: {{brand}}, ORIGINAL PRICE:</p>
         <p>DESCRIPTION: {{description}}</p>
       </div>
@@ -90,53 +91,30 @@
         <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
         <iframe src="http://www.facebook.com/plugins/like.php?app_id=108550772584353&amp;href=http%3A%2F%2Fwww.92five.net&amp;send=false&amp;layout=button_count&amp;width=450&amp;show_faces=true&amp;action=like&amp;colorscheme=light&amp;font&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:450px; height:21px;"></iframe>
       </div>
+      
+      
+      
       <div class="comments-block">
-        <h3 class="comments-title">Reviews (2)</h3>
+      
+        <h3 class="comments-title">Reviews ({{num_fb}})</h3>
         <div class="spacer"></div>
-        <div class="comment"> <img class="avatar" alt="" src="http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm" width="50" height="35" />
-          <div class="comment-info"> <a class="post-author">John Doe</a>
-            <p>January 21, 2011</p>
+        {% for rec in fb %}
+        <div class="comment"> <img class="avatar" alt="" src="../static/images/userphoto.jpg" width="50" height="35" />
+          <div class="comment-info"> <a class="post-author">UID: {{rec['bid']}}</a>
+            <p>{{rec['f_time']}}</p> 
           </div>
           <div class="comment-body">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In in vestibulum eros. Praesent at cursus orci. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam vitae sagittis dolor. Proin iaculis suscipit quam non suscipit. Vestibulum vestibulum semper tortor...</p>
-            <a class="reply" href="#">Reply</a> </div>
-        </div>
-        <div class="spacer"></div>
-        <div class="comment"><img class="avatar" alt="" src="http://www.gravatar.com/avatar/00000000000000000000000000000000?d=mm" width="50" height="35" />
-          <div class="comment-info"> <a class="post-author">Jane Doe</a>
-            <p>January 21, 2011</p>
+            <p>  </p>
+            <p>RATING: {{rec['rating']}}</p>
+            <p>AMOUNT: {{rec['amount']}}</p>
+            <p>REVIEW: {{rec['review']}}</p>
           </div>
-          <div class="comment-body">
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In in vestibulum eros. Praesent at cursus orci. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam vitae sagittis dolor. Proin iaculis suscipit quam non suscipit. Vestibulum vestibulum semper tortor...</p>
-            <a class="reply" href="#">Reply</a> </div>
         </div>
         <div class="spacer"></div>
+        {% endfor %}
+        
       </div>
-      <div class="response">
-        <h3>Leave a Comment</h3>
-        <h6 class="required-comment">* required</h6>
-        <div id="comment-form" class="form">
-          <div class="input-block">
-            <h6 class="short-label">Name*</h6>
-            <input class="short-field" id="name" type="text" name="name" value="" />
-          </div>
-          <div class="input-block">
-            <h6 class="short-label">Email*</h6>
-            <input class="short-field" id="email" type="text" name="email" value="" />
-          </div>
-          <div class="input-block-long">
-            <h6 class="short-label">Web</h6>
-            <input class="long-field" id="url" type="text" placeholder="http://" name="url" value="" />
-          </div>
-          <div class="textarea-block">
-            <h6>Comments*</h6>
-            <textarea id="comment" rows="10" cols="70" name="comment"></textarea>
-          </div>
-          <div class="clear"></div>
-          <input id="comment-button" type="submit" value="Submit" name="submit" />
-        </div>
-        <div class="spacer"></div>
-      </div>
+      
     </div>
   </div>
   <!--END of blog section-->

@@ -207,40 +207,81 @@ def generate_table(table_name):
 # Products page
 @app.route('/products')
 def products():
-  cursor = g.conn.execute("WITH temp1(sid, pid, pname, price, pdscp) AS (select sid,pid,pname,price,customized_description as pdscp from products_post_has where number > 0 limit 10) select u.username,t.pname, t.price, t.pdscp,  t.sid, t.pid from users as u, seller as s, temp1 as t where u.uid=s.uid and s.sid=t.sid;")
+  cursor = g.conn.execute("WITH temp1(sid, pid, iid, pname, price, pdscp) AS (select sid,pid,iid,pname,price,customized_description as pdscp from products_post_has where number > 0 limit 10) select u.username,t.pname, t.price, t.pdscp,  t.sid, t.pid, t.iid from users as u, seller as s, temp1 as t where u.uid=s.uid and s.sid=t.sid;")
   prods = []
   for record in cursor:
     record = list(record)
-    rec = {'username':record[0], 'fb':0, 'product_name':record[1], 'price':record[2], 'product_dscp':record[3], 'sid':record[4],'pid':record[5]}
+    rec = {'username':record[0], 'fb':0, 'product_name':record[1], 'price':record[2], 'product_dscp':record[3], 'sid':record[4],'pid':record[5], 'iid':record[6]}
     prods.append(rec)
   cursor.close()
   return render_template('products.html', products = prods)
 
 @app.route('/products/prod-<num>')
 def product_single(num):
+  """
+  num : int pid
+  """
   # check number constraints
-  cursor = g.conn.execute("SELECT DISTINCT pid FROM products_post_has")
-  all_prods = []
+  cursor = g.conn.execute("SELECT DISTINCT pid FROM products_post_has;")
+#   prod_all = []
+#   for p in cursor:
+#     prod_all.append(p)
+#   cursor.close()
+#   if p not in prod_all:
+#     return render_template('../static/error.html')
+  num = int(num)
   for p in cursor:
-    if num == p:
+    print type(num), type(list(p)[0])
+    if num == list(p)[0]:
       cursor.close()
       break
   else:
     cursor.close()
-    return render_template(url_for('static', filename='error.html'))
+    return render_template('../static/error.html')
     
   # extract and assign information for this product
-  cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.customized_description, u.username, i.iid, i.brand FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%n;" % num)
+  cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.customized_description, u.username, i.iid, i.brand FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%s;" % num)
   assert cursor.rowcount == 1
   result = cursor.first()
   sid, pid, product_name, price, description, post_username, iid, brand = list(result)
   
   # extract review data for this product
-#   cursor = g.conn.execute("SELECT f. FROM order_contains_prod_makes_fb_uses f WHERE f.pid=%n" % num)
-  return render_template('product-single.html', num=num, product_name=product_name, price=price, post_username=post_username, brand=brand, description=description)
+  cursor = g.conn.execute("SELECT f.bid, f.f_time, f.rating, f.amount, f.reviews FROM order_contains_prod_makes_fb_uses f WHERE f.pid=%s" % num)
+  fb_results = []
+  if cursor.rowcount:
+    for fb in cursor:
+      fb = list(fb)
+      fb_single = {'bid':fb[0], 'f_time':fb[1], 'rating':fb[2], 'amount':fb[3], 'review':fb[4]}
+      fb_results.append(fb_single)
+  cursor.close()
+  
+  return render_template('product-single.html', num=num, product_name=product_name, price=price, post_username=post_username, brand=brand, iid=iid, description=description, fb=fb_results, num_fb=len(fb_results))
+
+@app.route('/profiles')
+def profiles():
+  cursor = g.conn.execute("SELECT uid, username, address, phone, email FROM users;")
+  results = []
+  for rec in cursor: 
+    rec = list(rec)
+    results.append({'uid':rec[0], 'username':rec[1], 'address':rec[2], 'phone':rec[3], 'email':rec[4]})
+  return render_template('profiles.html', results=results)
+  
+    
+@app.route('/<username>')
+def profile(username):
+  """
+  username : str
+  """
+  username = str(username)
+   # show user information on this page
+  cursor = g.conn.execute("SELECT u.uid, u.email, u.address, u.phone FROM users AS u WHERE u.username='%s';" % username)
+  result = cursor.first()
+  uid, email, addr, phone = list(result)
+  return render_template('profile-single.html', username=username, uid=uid, email=email, addr=addr, phone=phone)
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
+
 def add():
   name = request.form['name']
   print name
@@ -261,7 +302,7 @@ if __name__ == "__main__":
   @click.command()
   @click.option('--debug', is_flag=True)
   @click.option('--threaded', is_flag=True)
-  @click.argument('HOST', default='0.0.0.0')
+  @click.argument('HOST', default='104.198.105.235')
   @click.argument('PORT', default=8111, type=int)
   def run(debug, threaded, host, port):
     """

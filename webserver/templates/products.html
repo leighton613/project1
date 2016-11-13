@@ -32,7 +32,7 @@
 <div id="topcontrol" style="position: fixed; bottom: 5px; left: 960px; opacity: 1; cursor: pointer;" title="Go to Top"></div>
 <div id="header-wrapper">
   <div id="header">
-    <div id="logo"><a href="index.html"><img src="static/images/logo.png" width="100" height="80" alt="logo" /></a></div>
+    <div id="logo"><a href="/"><img src="static/images/logo.png" width="100" height="80" alt="logo" /></a></div>
     <div id="header-text">
       <h4>These are our products, anything you are looking for?</h4>
       <h6><a href="/">Home</a> → Blog</h6>
@@ -47,6 +47,7 @@
       <li><a href="/">Home</a></li>
       <li><a href="../static/about.html">About</a></li>
       <li><a class="selected" href="/products">Products →</a></li>
+      <li><a href="/profiles">Profiles</a></li>
       <li><a href="/allDB">All DB</a></li>
     </ul>
   </div>
@@ -81,9 +82,9 @@
  -->
   {% for prod in products%}
   <div id="blog">
-	<div class="blog-item"> <a href="prod-{{prod['pid']}}.html"><img class="single_image" src="static/images/products/product-{{prod['pid']}}.jpg"  width="280" height="180" alt="product{{prod['sid']}}-{{prod['pid']}}" /></a>
+	<div class="blog-item"> <a href="products/prod-{{prod['pid']}}"><img class="single_image" src="static/images/products/product-{{prod['iid']}}.jpg"  width="280" height="180" alt="product-{{prod['pid']}}" /></a>
 	  <div class="blog-item-info">
-		<div class="user">{{prod['username']}}</div>
+		<div class="user"><a href='/{{prod['username']}}'>{{prod['username']}}</a></div>
 		<div class="comments">{{prod['fb']}} reviews</div>
 		<div class="tags">{{prod['price']}} $</div>
 	  </div>
