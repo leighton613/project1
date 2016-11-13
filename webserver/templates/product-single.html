@@ -35,7 +35,7 @@
     <div id="logo"><a href="/"><img src="../static/images/logo.png" width="100" height="80" alt="logo" /></a></div>
     <div id="header-text">
       <h4>{{product_name}}</h4>
-      <h6><a href="/">Home</a> → Blog Post</h6>
+      <h6><a href="/">Home</a> → Products</h6>
     </div>
   </div>
 </div>
@@ -45,7 +45,7 @@
   <div id="main-menu">
     <ul>
       <li><a href="/">Home</a></li>
-      <li><a href="../static/about.html">About</a></li>
+      <li><a href="/about">About</a></li>
       <li><a class="selected" href="/products">Products →</a></li>
       <li><a href="/profiles">Profiles</a></li>
       <li><a href="/allDB">All DB</a></li>
@@ -83,8 +83,9 @@
         <div class="comments">{{num_fb}} reviews</div>
         <div class="tags">NOW {{price}} $</div>
       </div>
-      <div class="blog-item-single-content"> <a class="single_image" href="../static/images/products/product-{{iid}}.jpg"><img src="../static/images/products/product-{{iid}}.jpg" width="720" height="280" alt="blog1" /></a>
-        <p>BRAND: {{brand}}, ORIGINAL PRICE:</p>
+      <div class="blog-item-single-content"> <a class="single_image" href="../static/images/products/product-{{iid}}.jpg"><img src="../static/images/products/product-{{iid}}.jpg" width="300" alt="prod-{{pid}}" /></a>
+        <p>BRAND: {{brand}}, ORIGINAL PRICE: {{orig_price}} $</p>
+        <p><a href="{{link}}">You can find original product here in Amazon</a></p>
         <p>DESCRIPTION: {{description}}</p>
       </div>
       <div class="social-blog-buttons"> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="92_Five">Tweet</a>
@@ -100,7 +101,7 @@
         <div class="spacer"></div>
         {% for rec in fb %}
         <div class="comment"> <img class="avatar" alt="" src="../static/images/userphoto.jpg" width="50" height="35" />
-          <div class="comment-info"> <a class="post-author">UID: {{rec['bid']}}</a>
+          <div class="comment-info"> <a class="post-author">{{rec['fb_user']}}</a>
             <p>{{rec['f_time']}}</p> 
           </div>
           <div class="comment-body">

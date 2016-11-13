@@ -164,6 +164,11 @@ def index():
 # notice that the functio name is another() rather than index()
 # the functions for each app.route needs to have different names
 #
+
+@app.route('/about')
+def about():
+  return render_template("about.html")
+
 @app.route('/allDB')
 def allDB():
   # Users
@@ -207,11 +212,11 @@ def generate_table(table_name):
 # Products page
 @app.route('/products')
 def products():
-  cursor = g.conn.execute("WITH temp1(sid, pid, iid, pname, price, pdscp) AS (select sid,pid,iid,pname,price,customized_description as pdscp from products_post_has where number > 0 limit 10) select u.username,t.pname, t.price, t.pdscp,  t.sid, t.pid, t.iid from users as u, seller as s, temp1 as t where u.uid=s.uid and s.sid=t.sid;")
+  cursor = g.conn.execute("WITH temp1(sid, pid, iid, pname, price, pdscp) AS (select sid,pid,iid,pname,price,customized_description as pdscp from products_post_has where number > 0 ), fb_count(pid, cnt) AS (SELECT pid, COUNT(*) AS cnt FROM order_contains_prod_makes_fb_uses GROUP BY pid) SELECT u.username,t.pname, t.price, t.pdscp,  t.sid, t.pid, t.iid, c.cnt FROM users as u, seller as s, temp1 as t, fb_count AS c where u.uid=s.uid and s.sid=t.sid and c.pid=t.pid;")
   prods = []
   for record in cursor:
     record = list(record)
-    rec = {'username':record[0], 'fb':0, 'product_name':record[1], 'price':record[2], 'product_dscp':record[3], 'sid':record[4],'pid':record[5], 'iid':record[6]}
+    rec = {'username':record[0], 'fb':record[7], 'product_name':record[1], 'price':record[2], 'product_dscp':record[3], 'sid':record[4],'pid':record[5], 'iid':record[6], 'cnt':record[7]}
     prods.append(rec)
   cursor.close()
   return render_template('products.html', products = prods)
@@ -221,41 +226,24 @@ def product_single(num):
   """
   num : int pid
   """
-  # check number constraints
-  cursor = g.conn.execute("SELECT DISTINCT pid FROM products_post_has;")
-#   prod_all = []
-#   for p in cursor:
-#     prod_all.append(p)
-#   cursor.close()
-#   if p not in prod_all:
-#     return render_template('../static/error.html')
-  num = int(num)
-  for p in cursor:
-    print type(num), type(list(p)[0])
-    if num == list(p)[0]:
-      cursor.close()
-      break
-  else:
-    cursor.close()
-    return render_template('../static/error.html')
     
   # extract and assign information for this product
-  cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.customized_description, u.username, i.iid, i.brand FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%s;" % num)
+  cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.customized_description, u.username, i.original_price, i.iid, i.brand, i.link FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%s;" % num)
   assert cursor.rowcount == 1
   result = cursor.first()
-  sid, pid, product_name, price, description, post_username, iid, brand = list(result)
+  sid, pid, product_name, price, description, post_username, orig_price, iid, brand, link = list(result)
   
-  # extract review data for this product
-  cursor = g.conn.execute("SELECT f.bid, f.f_time, f.rating, f.amount, f.reviews FROM order_contains_prod_makes_fb_uses f WHERE f.pid=%s" % num)
+  # extract review data and buyer name for this product
+  cursor = g.conn.execute("SELECT u.username, f.f_time, f.rating, f.amount, f.reviews FROM order_contains_prod_makes_fb_uses f, buyer b, users u WHERE f.pid=%s AND f.bid=b.bid AND b.uid=u.uid" % num)
   fb_results = []
   if cursor.rowcount:
     for fb in cursor:
       fb = list(fb)
-      fb_single = {'bid':fb[0], 'f_time':fb[1], 'rating':fb[2], 'amount':fb[3], 'review':fb[4]}
+      fb_single = {'fb_user':fb[0], 'f_time':fb[1], 'rating':fb[2], 'amount':fb[3], 'review':fb[4]}
       fb_results.append(fb_single)
   cursor.close()
   
-  return render_template('product-single.html', num=num, product_name=product_name, price=price, post_username=post_username, brand=brand, iid=iid, description=description, fb=fb_results, num_fb=len(fb_results))
+  return render_template('product-single.html', num=num, product_name=product_name, price=price, post_username=post_username, iid=iid, brand=brand, orig_price=orig_price, description=description, fb=fb_results, link=link, num_fb=len(fb_results))
 
 @app.route('/profiles')
 def profiles():
@@ -267,6 +255,7 @@ def profiles():
   return render_template('profiles.html', results=results)
   
     
+@app.route('/profiles/<username>')
 @app.route('/<username>')
 def profile(username):
   """
@@ -277,6 +266,7 @@ def profile(username):
   cursor = g.conn.execute("SELECT u.uid, u.email, u.address, u.phone FROM users AS u WHERE u.username='%s';" % username)
   result = cursor.first()
   uid, email, addr, phone = list(result)
+  
   return render_template('profile-single.html', username=username, uid=uid, email=email, addr=addr, phone=phone)
 
 # Example of adding new data to the database
@@ -295,6 +285,9 @@ def login():
     abort(401)
     this_is_never_executed()
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('error.html'), 404
 
 if __name__ == "__main__":
   import click
@@ -302,7 +295,7 @@ if __name__ == "__main__":
   @click.command()
   @click.option('--debug', is_flag=True)
   @click.option('--threaded', is_flag=True)
-  @click.argument('HOST', default='104.198.105.235')
+  @click.argument('HOST', default='0.0.0.0')
   @click.argument('PORT', default=8111, type=int)
   def run(debug, threaded, host, port):
     """
