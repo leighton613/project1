@@ -272,6 +272,16 @@ def profile(username):
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
 
+@app.route('/coupons')
+def coupons():
+  cursor = g.conn.execute("SELECT c.cid, c.description, c.discount, c.condition, c.expired_time FROM coupon c")
+  results = []
+  for rec in cursor:
+    rec = list(rec)
+    results.append({'code':rec[0], 'dscp':rec[1], 'discount':rec[2], 'condition':rec[3], 'expired_time':rec[4]})
+  cursor.close()
+  return render_template('coupons.html', coupons=results)
+
 def add():
   name = request.form['name']
   print name
