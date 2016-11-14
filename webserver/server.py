@@ -19,6 +19,7 @@ import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
 from flask import Flask, request, render_template, g, redirect, Response, url_for
+import datetime
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -245,6 +246,18 @@ def product_single(num):
   
   return render_template('product-single.html', num=num, product_name=product_name, price=price, post_username=post_username, iid=iid, brand=brand, orig_price=orig_price, description=description, fb=fb_results, link=link, num_fb=len(fb_results))
 
+@app.route('/products/make-order-prod-<num>')
+def make_order(num):
+
+  # extract and assign information for this product
+  cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.number, p.customized_description, u.username, i.original_price, i.iid, i.brand, i.link FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%s;" % num)
+  assert cursor.rowcount == 1
+  result = cursor.first()
+  sid, pid, product_name, price, number, description, post_username, orig_price, iid, brand, link = list(result)
+  
+  return render_template('order-single.html', num=num, product_name=product_name, price=price, number=number, post_username=post_username, iid=iid, brand=brand, orig_price=orig_price, description=description, link=link)
+
+
 @app.route('/profiles')
 def profiles():
   cursor = g.conn.execute("SELECT uid, username, address, phone, email FROM users;")
@@ -269,12 +282,11 @@ def profile(username):
   
   return render_template('profile-single.html', username=username, uid=uid, email=email, addr=addr, phone=phone)
 
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
+
 
 @app.route('/coupons')
 def coupons():
-  cursor = g.conn.execute("SELECT c.cid, c.description, c.discount, c.condition, c.expired_time FROM coupon c")
+  cursor = g.conn.execute("SELECT c.cid, c.description, c.discount, c.condition, c.expired_time FROM coupon c;")
   results = []
   for rec in cursor:
     rec = list(rec)
@@ -282,6 +294,83 @@ def coupons():
   cursor.close()
   return render_template('coupons.html', coupons=results)
 
+@app.route('/orders')
+def orders():
+  cursor = g.conn.execute("SELECT o.oid, u1.username, u2.username, o.o_time, o.completed, o.f_time FROM order_contains_prod_makes_fb_uses o, products_post_has p, seller s, buyer b, users u1, users u2 WHERE p.pid=o.pid AND o.sid=s.sid AND u1.uid=s.uid AND o.bid=b.bid AND b.uid=u2.uid;")
+  results = []
+  for rec in cursor:
+    oid, seller, buyer, o_time, completed, reviewd = list(rec)
+    results.append({'oid': oid, 'seller':seller, 'buyer':buyer, 'o_time':o_time, 'completed':completed, 'reviewd':reviewd})
+  return render_template('orders.html', results=results)
+
+# submit an order
+# 1. check information validation
+# 2. insert into table
+# 3. redirect to seller info
+# ------
+@app.route('/submit_order', methods=['POST'])
+def submit_order():
+  # validate coupon code
+  code = request.form['code']
+  cursor = g.conn.execute("SELECT c.discount FROM coupon c WHERE c.cid='%s' AND c.amount>0" % code)
+  if cursor.rowcount == 0:
+    # no such coupon
+    code = 'OVER1'
+    discount = 1.
+    cursor.close()
+  else:
+    discount = float(list(cursor.first())[0])
+  
+    
+  # get current oid
+  cursor = g.conn.execute("SELECT MAX(oid) FROM order_contains_prod_makes_fb_uses")
+  if cursor.rowcount:
+    max_oid = list(cursor.first())[0]
+  else:
+    max_oid = 0
+    cursor.close()
+  
+  # get buyer information
+  username = request.form['username']
+  cursor = g.conn.execute("SELECT b.bid FROM users u, buyer b WHERE u.uid=b.uid AND u.username='%s'" % username)
+  if cursor.rowcount:
+    bid = list(cursor.first())[0]
+  else:
+    bid_cur = g.conn.execute('SELECT MAX(bid) FROM buyer')
+    if bid_cur.rowcount:
+      max_bid = list(bid_cur.first())[0]
+    else:
+      max_bid = 0
+      bid_cur.close()
+    bid = max_bid + 1
+  
+  # total price and payment
+  amount = int(request.form['amount'])
+  pid_cur = g.conn.execute("SELECT p.price, p.sid, p.number FROM products_post_has p WHERE p.pid=%s" % request.form['pid'])
+  if pid_cur.rowcount:
+    unit_price, sid, number = list(pid_cur.first())
+    unit_price = float(unit_price)
+    number = int(number)
+  else:
+    pid_cur.close()
+  total_price = amount * unit_price
+  actual_payment = total_price * discount
+  
+  # redirect to seller profile
+  sid_cur = g.conn.execute("SELECT u.username FROM seller s, users u WHERE u.uid=s.uid AND s.sid='%s'" %sid)
+  if sid_cur.rowcount:
+    seller_name = list(sid_cur.first())[0]
+  else: 
+    sid_cur.close()
+  
+  
+  cmd = 'INSERT INTO order_contains_prod_makes_fb_uses VALUES (:oid, :cid, :pid, :bid, :sid, :o_time, :amount, :total_price, :actual_payment, :completed, :rating, :f_time, :reviews)';
+  g.conn.execute(text(cmd), oid=max_oid+1, cid=code, pid=request.form['pid'], bid=bid, sid=sid, o_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), amount=request.form['amount'], total_price=total_price, actual_payment=actual_payment, completed='False', rating=None, f_time=None, reviews=None);
+  return redirect('/%s' %seller_name)
+
+
+# Example of adding new data to the database
+@app.route('/add', methods=['POST'])
 def add():
   name = request.form['name']
   print name

@@ -82,40 +82,45 @@
       
       <div class="blog-item-single-info">
         <div class="user"><a href='/{{post_username}}'>{{post_username}}</a></div>
-        <div class="comments">{{num_fb}} reviews</div>
         <div class="tags">NOW {{price}} $</div>
       </div>
       <div class="blog-item-single-content"> <a class="single_image" href="../static/images/products/product-{{iid}}.jpg"><img src="../static/images/products/product-{{iid}}.jpg" width="300" alt="prod-{{pid}}" /></a>
-        <p>BRAND: {{brand}}, ORIGINAL PRICE: {{orig_price}} $</p>
-        <p><a href="{{link}}">You can find original product here in Amazon</a></p>
-        <p>DESCRIPTION: {{description}}</p>
-        <h5><a href="/products/make-order-prod-{{num}}">ORDER HERE >></a></h5>
-      </div>
-      <div class="social-blog-buttons"> <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="92_Five">Tweet</a>
-        <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
-        <iframe src="http://www.facebook.com/plugins/like.php?app_id=108550772584353&amp;href=http%3A%2F%2Fwww.92five.net&amp;send=false&amp;layout=button_count&amp;width=450&amp;show_faces=true&amp;action=like&amp;colorscheme=light&amp;font&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:450px; height:21px;"></iframe>
-      </div>
-      
-      
-      
-      <div class="comments-block">
-      
-        <h3 class="comments-title">Reviews ({{num_fb}})</h3>
-        <div class="spacer"></div>
-        {% for rec in fb %}
-        <div class="comment"> <img class="avatar" alt="" src="../static/images/userphoto.jpg" width="50" height="35" />
-          <div class="comment-info"> <a class="post-author">{{rec['fb_user']}}</a>
-            <p>{{rec['f_time']}}</p> 
+        
+        <!-- This is the START of order information -->
+        <form method="post" action="/submit_order">
+          <div class="boxes">
+            pid<span class="required">*</span><br>
+            <div class="box">
+              <input name="pid" type="text" class="input" value="{{num}}" readonly />
+            </div>
+            Amount<span class="required">*</span><br> Current amount: {{number}}
+            <div class="box">
+              <input name="amount" type="text" class="input" value="1" />
+            </div>
+            Coupon<span class="required">*</span><br>
+            <div class="box">
+              <input name="code" type="text" class="input" value="OVER1" />
+            </div>
+            Your username<span class="required">*</span><br>
+            <div class="box">
+              <input name="username" type="text" class="input" value="" />
+            </div>
+            email<span class="required">*</span><br>
+            <div class="box">
+              <input name="email" type="text" class="input" value="" />
+            </div>
+            Phone #<span class="required">*</span><br>
+            <div class="box">
+              <input name="phone" type="text" class="input" value="" />
+            </div>
+            <div class="submitbtn">
+              <input type="submit" class="button btncolor" value="Place Order" />
+            </div>
           </div>
-          <div class="comment-body">
-            <p>  </p>
-            <p>RATING: {{rec['rating']}}</p>
-            <p>AMOUNT: {{rec['amount']}}</p>
-            <p>REVIEW: {{rec['review']}}</p>
-          </div>
-        </div>
-        <div class="spacer"></div>
-        {% endfor %}
+        </form>
+        <h5><a href="/products/prod-{{num}}">BACK TO PRODUCT</a></h5>
+      </div>
+      
         
       </div>
       
