@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Coupons</title>
+<title>Write review</title>
 <link rel="shortcut icon" href="favicon.ico" />
 <!-- Load CSS -->
 <link href="static/style.css" rel="stylesheet" type="text/css" />
@@ -26,6 +26,11 @@
 <script type="text/javascript" src="static/jquery.easing-1.3.pack.js"></script>
 <script type="text/javascript" src="static/jquery.mousewheel-3.0.4.pack.js"></script>
 <link rel="stylesheet" href="static/jquery.fancybox-1.3.4.css" type="text/css" media="screen" />
+<!-- Load contact check -->
+
+<script type="text/javascript">
+</script>
+
 
 </head>
 <body>
@@ -33,9 +38,9 @@
 <div id="topcontrol" style="position: fixed; bottom: 5px; left: 960px; opacity: 1; cursor: pointer;" title="Go to Top"></div>
 <div id="header-wrapper">
   <div id="header">
-    <div id="logo"><a href="/"><img src="static/images/logo.png" width="100" alt="logo" /></a></div>
+    <div id="logo"><a href="/"><img src="static/images/logo.png" width="100" height="80" alt="logo" /></a></div>
     <div id="header-text">
-      <h4>Please use the coupons as you like!</h4>
+      <h4>How was your experience?</h4>
       <h6><a href="/">Home</a> → Orders</h6>
     </div>
   </div>
@@ -76,35 +81,41 @@
 <!--END of menu-->
 <!--This is the START of the content-->
 <div id="content">
-  <div class="spacer"></div>
-  <div class="team-text">
-    <h2>Please feel free to use coupons as our gifts</h2>
-	<div class="star-divider"></div>
-    <h5>You can find out more by visiting again</h5>
+  <!--This is the START of the contact section-->
+  <div id="contact">
+    <h5 style="margin-top:10px;">Contact us</h5>
+    <p>Please leave us a review and enhance your experience!</p>
+    <form action="/submit_review" method="post">
+      <div class="boxes">
+        <h6>Buyer username<span class="required">*</span></h6>
+        <div class="box">
+          <input name="buyer" type="text" class="input" value="{{buyer}}" readonly/>
+        </div>
+        <h6>Order number<span class="required">*</span></h6>
+        <div class="box">
+          <input name="oid" type="text" class="input" value="{{oid}}" readonly/>
+        </div>
+        <h6>rating<span class="required">*</span></h6>
+        <div class="box">
+        
+          <input name="rating" type="radio" class="input" value="1" />
+          <input name="rating" type="radio" class="input" value="2" />
+          <input name="rating" type="radio" class="input" value="3" />
+          <input name="rating" type="radio" class="input" value="4" />
+          <input name="rating" type="radio" class="input" value="5" checked />
+        </div>
+        <h6>review</h6>
+        <div class="msgbox">
+          <textarea name="review" rows="10" cols="80" class="message"></textarea>
+        </div>
+        <div class="submitbtn">
+          <input type="submit" class="button btncolor" value="Send review" />
+        </div>
+      </div>
+    </form>
   </div>
-  <div class="spacer"></div>
-  <div class="about">
   
-  {% for res in results %}
-    <h5>Order number: {{res['oid']}} Placed by <a href="/{{res['buyer']}}">{{res['buyer']}}</a></h5>
-    <p>
-      Seller: <a href="/{{res['seller']}}">{{res['seller']}}</a>  Order time: {{res['o_time']}}
-    </p>
-      
-    <p>
-      Completed: {{res['completed']}}
-    </p>
-    <p>
-      Reviewd: {{res['reviewd']}}
-    </p>
-     <p id = "write_review">
-      <a href="/write_review_{{res['oid']}}">Click to write a review</a>
-    </p>
-	  <div class="spacer"></div>
-  {% endfor %}
-    
-  </div>
-  <div class="spacer"></div>
+  <!--END of contact section-->
 </div>
 <!--END of content-->
 <p class="slide"><a href="https://github.com/leighton613/project1"><img style="position: absolute; top: 0; right: 15; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" width="96" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a></p>

@@ -368,6 +368,30 @@ def submit_order():
   g.conn.execute(text(cmd), oid=max_oid+1, cid=code, pid=request.form['pid'], bid=bid, sid=sid, o_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), amount=request.form['amount'], total_price=total_price, actual_payment=actual_payment, completed='False', rating=None, f_time=None, reviews=None);
   return redirect('/%s' %seller_name)
 
+# write_review
+@app.route('/write_review_<oid>')
+def write_review(oid):
+  """
+  oid : int 
+  """
+  oid = int(oid)
+  cursor = g.conn.execute("SELECT u1.username, u2.username, o.o_time FROM order_contains_prod_makes_fb_uses o, products_post_has p, seller s, buyer b, users u1, users u2 WHERE p.pid=o.pid AND o.sid=s.sid AND u1.uid=s.uid AND o.bid=b.bid AND b.uid=u2.uid AND o.oid=%s;" % oid)
+  assert cursor.rowcount == 1
+  result = cursor.first()
+  seller, buyer, o_time = list(result)
+  return render_template('write_review.html', oid=oid, seller=seller, buyer=buyer, o_time=o_time)
+
+@app.route('/submit_review', methods=['POST'])
+def submit_review():
+  oid = request.form['oid']
+  rating = request.form['rating']
+  review = request.form['review']
+  cmd = "UPDATE order_contains_prod_makes_fb_uses SET completed='t', rating=(:rating), reviews=(:review), f_time=(:f_time) WHERE oid=%s;" %oid
+#   print oid, rating, review
+#   print cmd
+  g.conn.execute(text(cmd),rating=rating, review=review, f_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'));
+  return redirect('/')
+
 
 # Example of adding new data to the database
 @app.route('/add', methods=['POST'])
