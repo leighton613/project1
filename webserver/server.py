@@ -293,7 +293,7 @@ def products():
   prods = []
   for record in cursor:
     record = list(record)
-    rec = {'username':record[3], 'fb':record[7], 'product_name':record[0], 'price':record[1], 'product_dscp':record[2],'pid':record[4], 'iid':record[5], 'cnt':record[6], 'sid':record[7]}
+    rec = {'username':record[3], 'fb':record[6], 'product_name':record[0], 'price':record[1], 'product_dscp':record[2],'pid':record[4], 'iid':record[5], 'cnt':record[6], 'sid':record[7]}
     prods.append(rec)
   cursor.close()
   return render_template('products.html', products = prods)
@@ -360,15 +360,19 @@ def profile(username):
   """
   username : str
   """
-    # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
+# DEBUG: login cookie
+#   username = request.cookies.get('username')
+#   print 'username:', username
   
   username = str(username)
    # show user information on this page
   cursor = g.conn.execute("SELECT u.uid, u.email, u.address, u.phone FROM users AS u WHERE u.username='%s';" % username)
-  result = cursor.first()
-  uid, email, addr, phone = list(result)
+  if cursor.rowcount == 1:
+    result = cursor.first()
+    uid, email, addr, phone = list(result)
+  else:
+    cursor.close()
+    return page_not_found('no user record')
   
   return render_template('profile-single.html', username=username, uid=uid, email=email, addr=addr, phone=phone)
 
@@ -376,9 +380,10 @@ def profile(username):
 
 @app.route('/coupons')
 def coupons():
-  # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
+# DEBUG: login cookie
+#   username = request.cookies.get('username')
+#   print 'username:', username
+
   
   cursor = g.conn.execute("SELECT c.cid, c.description, c.discount, c.condition, c.expired_time FROM coupon c;")
   results = []
@@ -408,9 +413,10 @@ def orders():
 # ------
 @app.route('/submit_order', methods=['POST'])
 def submit_order():
-  # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
+# DEBUG: login cookie
+#   username = request.cookies.get('username')
+#   print 'username:', username
+  username = str(request.form['username'])
   
   # validate coupon code
   code = request.form['code']
