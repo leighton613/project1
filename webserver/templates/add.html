@@ -1,0 +1,109 @@
+<html>
+  <style>
+    body{ 
+      font-size: 15pt;
+      font-family: arial;
+    }
+  </style>
+<!-- <script src="static/submit_form.js"></script> -->
+<body>
+  <h1>Upload your stuff</h1>
+  <!-- <div>{{data}}</div> -->
+
+  <!-- <div>
+    {% for n in data %}
+    <div>{{n}}</div>
+    {% endfor %}
+  </div> -->
+<!-- 
+<p><a href="/another">Go to the other page</a></p> -->
+
+<!-- <div>
+      <li >Write your product information</li>
+                <li></li>
+                <li>Name</li>
+                <li> 
+                    <form id="name">
+                            <input type="text" id="name1">
+                    </form>
+                </li>
+                <li>Brand</li>
+                <li> 
+                    <form id="brand">
+                            <input type="text" id="brand1">
+                    </form>
+                </li>
+                <li>size</li>
+                <li> 
+                    <form id="size">
+                            <input type="text" id="size1">
+                    </form>
+                </li>
+                <li>original_price(US dollars)</li>
+                <li> 
+                    <form id="original_price">
+                            <input type="text" id="original_price1">
+                    </form>
+                </li>
+                <li>weight(kg)</li>
+                <li> 
+                    <form id="weight">
+                            <input type="text" id="weight1">
+                    </form>
+                </li>
+                <li>link</li>
+                <li> 
+                    <form id="link">
+                            <input type="text" id="link1">
+                    </form>
+                </li>
+
+</div>
+
+<li>
+    <button id="#submitChanges" onclick = submitChanges()>
+      <p id="submitChangesText"> Submit </p>
+    </button>
+</li> -->
+
+<!-- iid, brand, size, original_price, weight, name,link) -->
+<div id="main-menu">
+    <ul>
+      <li><a class="selected" href="/index">Home →</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/products">Products</a></li>
+      <li><a href="/profiles">Profiles</a></li>
+      <li><a href="/coupons">Coupons</a></li>
+      <li><a href="/orders">Orders</a></li>
+      <li><a href="/allDB">All DB</a></li>
+      <li><a href="/add">Upload</a></li>
+    </ul>
+  </div>
+<form method="POST" action="/insert">
+  <p> Name: <input type="text" name="name" id="name" value="" /> 
+
+
+  brand: <input type="text" name="brand" id="brand" value="" />
+  size: <input type="text" name="size" id="size" value="" /> </p>
+  <p> original_price: <input type="text" name="original_price" id="original_price" value="" />
+  weight: <input type="text" name="weight" id="weight" value="" /> 
+  
+  link: <input type="text" name="link" id="link" value="" /> </p>
+
+  <p> price: <input type="text" name="price" id="price" value="" />
+  number: <input type="text" name="number" id="number" value="" /> 
+  
+  customized_description: <input type="text" name="customized_description" id="customized_description" value="" /> </p>
+  <!-- Comments: <textarea name="" id="comments" cols="25" rows="3"></textarea> -->
+  <input type="submit" value="submit" />
+</form>
+
+
+<!-- <form method="POST" action="/add1">
+<p>Name of new computer scientist: <input type="text" name="name"> <input type="submit" value="Add"></p>
+</form> -->
+
+</body>
+
+
+</html>

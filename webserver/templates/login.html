@@ -1,0 +1,109 @@
+<html>
+
+<!--Following is the definition of HEAD (appearance)-->
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <!--<link rel="stylesheet" type="text/css" href="mainTwitterMap.css" media="screen, projection" />-->
+
+    <!--Following is the css style sheet (because it failed to recognize a seperate css file)-->
+    <style type="text/css">
+      html, body { height: 100%; margin: 0; padding: 0; }
+       body {
+            background-image: url("static/images/CU_11.jpg");
+            background-repeat: no-repeat;
+            background-size:cover;
+            font-family: 'Droid Serif', Verdana, Arial, sans-serif; 
+            font-size: 12px; 
+            font-weight: bold;             /*letter-spacing: -1px; line-height: 1; */
+            text-align: center;
+        }
+
+        p {
+            color:	#003D79  ;
+            font-family: 'Droid Serif', Verdana, Arial, sans-serif; 
+            font-size: 20px; 
+            text-align: center;
+        }
+    
+        #one {
+            border-radius: 20px 50px;
+            background:#F0F0F0;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 50px; 
+            width: 500px;
+            height: 100px;
+            color:	#003D79;
+            font-family: 'Droid Serif', Verdana, Arial, sans-serif; 
+            font-size: 20px; 
+            text-align: center;
+            margin-top: 50px;
+        }
+
+
+        h1 { 
+            font-family:Georgia,serif;
+            background-color: #99B6D7;
+            color: 	#003D79;
+            font-variant: small-caps; 
+            text-transform: none; 
+            font-size: 50px; 
+            font-weight: 100; 
+            margin-top: 0;
+            }
+
+         form {
+          max-width: 400px;
+          margin: 10px auto;
+          padding: 10px 20px;
+          background: #F0F0F0;
+          border-radius: 6px;
+        }
+            input[type="text"],
+            textarea,
+            select {
+              background: rgba(255,255,255,0.1);
+              border: none;
+              font-size: 15px;
+              height: auto;
+              margin: 0;
+              outline: 0;
+              padding: 15px;
+              width: 100%;
+              background-color: #E0E0E0;
+              color: #003D79  ;
+              box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+              margin-bottom: 10px;
+            }
+
+    </style>
+
+</head>
+
+<body>
+    <h1>Welcome to Our trading Platform!</h1>
+    <p id = "one">Want to enjoy something cheaper? Join Us!
+     We provide the best second hand platform in Columbia University!
+    </p>
+    <p>
+    {{error}}
+    </p>
+
+      <form method="POST" action="/">
+        <p>UserName: <input type="text" name="username">
+        Password: <input type="text" name="password"> <input type="submit" value="log in"></p>
+      </form>
+      <form action="/index">
+            <p>Browsing?</p>
+            <input type="submit" value="Guest Access">
+      </form> 
+        <form action="#">
+            <p>New user?</p>
+        
+            <input type="submit" value="Guest Access">
+        </form> 
+      
+
+</body>
+</html>
+

@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title>Coupons</title>
+<title>Sell Stuff</title>
 <link rel="shortcut icon" href="favicon.ico" />
 <!-- Load CSS -->
 <link href="static/style.css" rel="stylesheet" type="text/css" />
@@ -26,7 +26,6 @@
 <script type="text/javascript" src="static/jquery.easing-1.3.pack.js"></script>
 <script type="text/javascript" src="static/jquery.mousewheel-3.0.4.pack.js"></script>
 <link rel="stylesheet" href="static/jquery.fancybox-1.3.4.css" type="text/css" media="screen" />
-
 </head>
 <body>
 <!--This is the START of the header-->
@@ -38,7 +37,7 @@
  -->
     <div id="header-text">
       <h4>Please use the coupons as you like!</h4>
-      <h6><a href="/index">Home</a> → Orders</h6>
+      <h6><a href="/index">Home</a> → Sell Stuff</h6>
     </div>
   </div>
 </div>
@@ -49,12 +48,12 @@
     <ul>
       <li><a href="/index">Home</a></li>
       <li><a href="/about">About</a></li>
-      <li><a href="/products">BuyProducts</a></li>
-      <li><a href="/stuff">Sell Stuff</a></li>
+      <li><a href="/products">Buy Products</a></li>
+      <li><a class="selected" href="/stuff">Sell Stuff →</a></li>
       <li><a href="/profiles">Profiles</a></li>
       <li><a href="/coupons">Coupons</a></li>
-      <li><a class="selected" href="/orders">Orders →</a></li>
-      <li><a href="/allDB">All DB</a></li>
+      <li><a href="/orders">Orders</a></li>
+      <li><a href="/allDB">FYI: All DB</a></li>
     </ul>
   </div>
 	<!--This is the START of the footer-->
@@ -81,30 +80,51 @@
 <div id="content">
   <div class="spacer"></div>
   <div class="team-text">
-    <h2>Please feel free to use coupons as our gifts</h2>
+    <h2>Please write down information about your stuff</h2>
 	<div class="star-divider"></div>
-    <h5>You can find out more by visiting again</h5>
+    <h5>Then we will put it in our database</h5>
   </div>
   <div class="spacer"></div>
   <div class="about">
   
-  {% for res in results %}
-    <h5>Order number: {{res['oid']}} Placed by <a href="/{{res['buyer']}}">{{res['buyer']}}</a></h5>
-    <p>
-      Seller: <a href="/{{res['seller']}}">{{res['seller']}}</a>  Order time: {{res['o_time']}}
-    </p>
-      
-    <p>
-      Completed: {{res['completed']}}
-    </p>
-    <p>
-      Reviewd: {{res['reviewd']}}
-    </p>
-     <p id = "write_review">
-      <a href="/write_review_{{res['oid']}}">Click to write/update a review</a>
-    </p>
-	  <div class="spacer"></div>
-  {% endfor %}
+  <form method="POST" action="/insert_stuff">
+    <div class="box">
+	  <p> Username<span class="required">*</span>: <input type="text" name="username" value="leighton" /> </p>
+	</div>
+    <div class="box">
+	  <p> Name<span class="required">*</span>: <input type="text" name="name" id="name" value="" /> </p>
+	</div>
+	<div class="box">
+	  <p>Brand: <input type="text" name="brand"/></p>
+	</div>
+	<div class="box">
+	  <p>Size: <input type="text" name="size"/> </p>
+	</div>
+	<div class="box">
+	  <p>Link on Amazon: <input type="text" name="link"/> </p>
+	</div>
+	<div class="box">
+	  <p>Original price on Amazon<span class="required">*</span>: <input type="text" name="original_price"/></p>
+	</div>
+	<div class="box">
+	  <p>Weight: <input type="text" name="weight"/> </p>
+	</div>
+	<div class="box">
+	  <p>Sell Price<span class="required">*</span>: <input type="text" name="price"/></p>
+	</div>
+	<div class="box">
+	  <p>Number of products to sell<span class="required">*</span>: <input type="text" name="number"value="1" /> </p>
+	</div>
+	<div class="box">
+	  <p>Your description about this product: </p>
+	  <div class="msgbox">
+          <textarea name="customized_description" rows="10" cols="80" class="message"></textarea>
+        </div>
+    </div>
+  <!-- Comments: <textarea name="" id="comments" cols="25" rows="3"></textarea> -->
+  <input type="submit" value="submit" />
+</form>
+
     
   </div>
   <div class="spacer"></div>

@@ -31,12 +31,23 @@
 <!--This is the START of the header-->
 <div id="topcontrol" style="position: fixed; bottom: 5px; left: 960px; opacity: 1; cursor: pointer;" title="Go to Top"></div>
 <div id="header-wrapper">
-	<div id="header">
+    <a href="https://github.com/leighton613/project1"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" width="149" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a>
+
+<!-- 
 		<div id="logo"> <a href="/"><img src="static/images/logo.png" width="90" height='40' alt="logo" /></a> </div>
+ -->
 		<div id="header-text">
 			<h4>w4111 project 1</h4>
-			<h6><a href="/">Home</a></h6>
+			<h6><a href="/index">Home</a></h6>
+			<div>
+			  <p ><a href="/">LOG IN</a></p>
+			</div>
+			<div>
+			  <p ><a href="#">SIGN UP</a></p>
+			</div>
 		</div>
+			
+	<div id="header">
 	</div>
 </div>
 <!--END of header-->
@@ -44,13 +55,14 @@
 <div id="menu-wrapper">
 	<div id="main-menu">
 		<ul>
-			<li><a class="selected" href="/">Home →</a></li>
+			<li><a class="selected" href="/index">Home →</a></li>
 			<li><a href="/about">About</a></li>
-			<li><a href="/products">Products</a></li>
+			<li><a href="/products">Buy Products</a></li>
+			<li><a href="/stuff">Sell Stuff</a></li>
 			<li><a href="/profiles">Profiles</a></li>
 			<li><a href="/coupons">Coupons</a></li>
 			<li><a href="/orders">Orders</a></li>
-			<li><a href="/allDB">All DB</a></li>
+			<li><a href="/allDB">FYI: All DB</a></li>
 		</ul>
 	</div>
 	<!--This is the START of the footer-->
@@ -83,7 +95,7 @@
 	</div>
 	<!END of NIVO Slider-->
 	<div class="team-text">
-		<h2>Here we can put some recent fb or products</h2>
+		<h2>Recent users</h2>
 		<div class="star-divider"></div>
 		<div>
 		  {% for n in data %}
@@ -96,7 +108,7 @@
 	<div id="recent-text">
 		<h2>Here is our team</h2>
 		<div class="star-divider"></div>
-		<h5>You can check them out in our blog section!</h5>
+		<h5>You can check them out in our team section!</h5>
 		<div class="spacer"></div>
 	</div>
 	<div id="recent-posts-container">
@@ -124,8 +136,7 @@
 	</div>
 </div>
 <!--END of content-->
-<!-- <p class="slide"><a href="https://github.com/leighton613/project1" class="btn-slide"></a></p> -->
-<p class="slide"><a href="https://github.com/leighton613/project1"><img style="position: absolute; top: 0; right: 15; border: 0;" src="https://camo.githubusercontent.com/a6677b08c955af8400f44c6298f40e7d19cc5b2d/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" width="96" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png"></a></p>
+
 
 </body>
 </html>

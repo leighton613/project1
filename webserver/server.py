@@ -18,7 +18,7 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response, url_for
+from flask import Flask, request, render_template, g, redirect, Response, url_for, session
 import datetime
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -74,6 +74,45 @@ engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'
 #
 
 
+@app.route('/', methods=['POST', 'GET'])
+def login():
+      # DEBUG: login cookie
+    username = request.cookies.get('username')
+    print 'username:', username
+  
+    error = None
+    if request.method == 'POST':
+        if valid_login(request.form['username'],
+                       request.form['password']):
+            return log_user_in(request.form['username'])
+        else:
+            error = 'Invalid username/password'
+    # the code below is executed if the request method
+    # was GET or the credentials were invalid
+    return render_template('login.html', error=error)
+    
+def valid_login(username, password):
+  
+  username = str(username)
+  print 'input username', username 
+  cursor = g.conn.execute("SELECT password FROM users WHERE username='%s'" %username)
+#   print 'rowcount', cursor.rowcount
+#   print 'right pwd', len(right_pwd)
+#   print 'input pwd', len(str(password))
+#   print right_pwd==str(password)
+  if cursor.rowcount == 0 or str(list(cursor.first())[0]).rstrip() != str(password):
+    return False
+  else:
+    return True
+
+def log_user_in(username):
+  
+  # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
+  
+  return redirect('/index')
+
 
 @app.before_request
 def before_request():
@@ -117,7 +156,6 @@ def teardown_request(exception):
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
 @app.route('/index')
-@app.route('/')
 def index():
   """
   request is a special object that Flask provides to access web request information:
@@ -130,8 +168,11 @@ def index():
   """
 
   # DEBUG: this is debugging code to see what request looks like
-  print request.args
+#   print request.args
 
+  # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
 
   #
   # example of a database query
@@ -141,12 +182,6 @@ def index():
   for result in cursor:
     names.append(result['username'])  # can also be accessed using result[0]
   cursor.close()
-
-  #
-  # Flask uses Jinja templates, which is an extension to HTML where you can
-  # pass data to a template and dynamically generate HTML based on the data
-  # (you can think of it as simple PHP)
-  # documentation: https://realpython.com/blog/python/primer-on-jinja-templating/
 
   context = dict(data = names)
 
@@ -166,12 +201,49 @@ def index():
 # the functions for each app.route needs to have different names
 #
 
+@app.route('/signup')
+def signup():
+  return render_template("signup.html")
+  
+@app.route('/sign_to_db', methods=['POST'])
+def sign_to_db():
+  username = request.form['username']
+  password = request.form['password']
+  email = request.form['email']
+  phone = request.form['phone']
+  address = request.form['address']
+  
+  # find maximum uid
+  cursor = g.conn.execute("SELECT MAX(uid) FROM users")
+  if cursor.rowcount:
+    max_uid = list(cursor.first())[0]
+  else:
+    max_uid = 0
+    cursor.close()
+  
+  # insert user to db
+  cmd = 'INSERT INTO users VALUES (:uid, :username, :password, :email, :phone, :address)';
+  try:
+  	g.conn.execute(cmd, uid=max_uid+1, username=username, password=password, email=email, phone=phone, address=address)
+  	return redirect('/')
+  except:
+    return render_template('error.html'), 404
+    
+
 @app.route('/about')
 def about():
+  # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
+  
   return render_template("about.html")
 
 @app.route('/allDB')
 def allDB():
+  # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
+  
   # Users
   users = generate_table('users')
   # Buyers
@@ -213,11 +285,15 @@ def generate_table(table_name):
 # Products page
 @app.route('/products')
 def products():
-  cursor = g.conn.execute("WITH temp1(sid, pid, iid, pname, price, pdscp) AS (select sid,pid,iid,pname,price,customized_description as pdscp from products_post_has where number > 0 ), fb_count(pid, cnt) AS (SELECT pid, COUNT(*) AS cnt FROM order_contains_prod_makes_fb_uses GROUP BY pid) SELECT u.username,t.pname, t.price, t.pdscp,  t.sid, t.pid, t.iid, c.cnt FROM users as u, seller as s, temp1 as t, fb_count AS c where u.uid=s.uid and s.sid=t.sid and c.pid=t.pid;")
+  # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
+  
+  cursor = g.conn.execute("WITH temp1(username, sid, pid, iid, pname, price, pdscp) AS (SELECT u.username, s.sid, p.pid, p.iid, p.pname, p.price,p.customized_description AS pdscp FROM products_post_has p, users as u, seller as s WHERE p.number > 0 AND u.uid=s.uid AND s.sid=p.sid), fb_count(pid, cnt) AS (SELECT pid, COUNT(*) AS cnt FROM order_contains_prod_makes_fb_uses GROUP BY pid) SELECT t.pname, t.price, t.pdscp,  t.username, t.pid, t.iid, c.cnt, t.sid FROM temp1 as t LEFT JOIN fb_count AS c ON t.pid=c.pid")
   prods = []
   for record in cursor:
     record = list(record)
-    rec = {'username':record[0], 'fb':record[7], 'product_name':record[1], 'price':record[2], 'product_dscp':record[3], 'sid':record[4],'pid':record[5], 'iid':record[6], 'cnt':record[7]}
+    rec = {'username':record[3], 'fb':record[7], 'product_name':record[0], 'price':record[1], 'product_dscp':record[2],'pid':record[4], 'iid':record[5], 'cnt':record[6], 'sid':record[7]}
     prods.append(rec)
   cursor.close()
   return render_template('products.html', products = prods)
@@ -227,7 +303,10 @@ def product_single(num):
   """
   num : int pid
   """
-    
+  # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
+  
   # extract and assign information for this product
   cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.customized_description, u.username, i.original_price, i.iid, i.brand, i.link FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%s;" % num)
   assert cursor.rowcount == 1
@@ -248,7 +327,10 @@ def product_single(num):
 
 @app.route('/products/make-order-prod-<num>')
 def make_order(num):
-
+    # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
+  
   # extract and assign information for this product
   cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.number, p.customized_description, u.username, i.original_price, i.iid, i.brand, i.link FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%s;" % num)
   assert cursor.rowcount == 1
@@ -260,6 +342,10 @@ def make_order(num):
 
 @app.route('/profiles')
 def profiles():
+    # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
+  
   cursor = g.conn.execute("SELECT uid, username, address, phone, email FROM users;")
   results = []
   for rec in cursor: 
@@ -274,6 +360,10 @@ def profile(username):
   """
   username : str
   """
+    # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
+  
   username = str(username)
    # show user information on this page
   cursor = g.conn.execute("SELECT u.uid, u.email, u.address, u.phone FROM users AS u WHERE u.username='%s';" % username)
@@ -286,6 +376,10 @@ def profile(username):
 
 @app.route('/coupons')
 def coupons():
+  # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
+  
   cursor = g.conn.execute("SELECT c.cid, c.description, c.discount, c.condition, c.expired_time FROM coupon c;")
   results = []
   for rec in cursor:
@@ -296,6 +390,10 @@ def coupons():
 
 @app.route('/orders')
 def orders():
+  # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
+  
   cursor = g.conn.execute("SELECT o.oid, u1.username, u2.username, o.o_time, o.completed, o.f_time FROM order_contains_prod_makes_fb_uses o, products_post_has p, seller s, buyer b, users u1, users u2 WHERE p.pid=o.pid AND o.sid=s.sid AND u1.uid=s.uid AND o.bid=b.bid AND b.uid=u2.uid;")
   results = []
   for rec in cursor:
@@ -310,6 +408,10 @@ def orders():
 # ------
 @app.route('/submit_order', methods=['POST'])
 def submit_order():
+  # DEBUG: login cookie
+  username = request.cookies.get('username')
+  print 'username:', username
+  
   # validate coupon code
   code = request.form['code']
   cursor = g.conn.execute("SELECT c.discount FROM coupon c WHERE c.cid='%s' AND c.amount>0" % code)
@@ -320,6 +422,7 @@ def submit_order():
     cursor.close()
   else:
     discount = float(list(cursor.first())[0])
+    
   
     
   # get current oid
@@ -332,6 +435,14 @@ def submit_order():
   
   # get buyer information
   username = request.form['username']
+  
+  # LOGIN ISSUE 
+#   login_user = request.cookies.get('username')
+#   if login_user == None:
+# 	return redirect('/')
+#   if username != login_user:
+# 	return page_not_found('Ooops, seems like you are not the buyer')
+    
   cursor = g.conn.execute("SELECT b.bid FROM users u, buyer b WHERE u.uid=b.uid AND u.username='%s'" % username)
   if cursor.rowcount:
     bid = list(cursor.first())[0]
@@ -383,6 +494,15 @@ def write_review(oid):
 
 @app.route('/submit_review', methods=['POST'])
 def submit_review():
+  buyer = request.form['buyer']
+  
+  # LOGIN ISSUE
+#   login_user = request.cookies.get('username')
+#   if login_user == None:
+#     return redirect('/')
+#   if login_user != buyer:
+#     return page_not_found('Ooops, seems like you are not the buyer')
+
   oid = request.form['oid']
   rating = request.form['rating']
   review = request.form['review']
@@ -390,27 +510,111 @@ def submit_review():
 #   print oid, rating, review
 #   print cmd
   g.conn.execute(text(cmd),rating=rating, review=review, f_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'));
-  return redirect('/')
+  return redirect('/index')
 
+# upload stuff
+@app.route('/stuff')
+def stuff():
+  return render_template('upload.html')
+
+@app.route('/insert_stuff', methods=['POST'])
+def insert():
+#########################
+  # LOGIN ISSUE
+#   login_user = str(request.cookies.get('username'))
+#   if login_user == None:
+#     return redirect('/signup')
+#########################
+  username = str(request.form['username'])
+  
+  name = str(request.form['name'])
+  size = str(request.form['size'])
+  original_price = str(request.form['original_price'])
+  weight = float(request.form['weight']) if request.form['weight'] else None
+  link = str(request.form['link'])
+  brand = str(request.form['brand'])
+  customized_description = str(request.form['customized_description'])
+  price = str(request.form['price'])
+  number = str(request.form['number'])
+  print name, original_price, size, weight,link,brand
+
+  cursor = g.conn.execute("SELECT MAX(s.iid) from standard_info as s")
+  new_iid = 0
+  for result in cursor:
+    new_iid = str(int(result.values()[0]) + 1)
+  print new_iid
+  cursor.close()
+
+  #(iid, brand, size, original_price, weight, name,link)
+  cmd = 'INSERT INTO standard_info VALUES (:iid, :brand, :size,:original_price, :weight, :name, :link)';
+  #cmd = 'INSERT INTO order_contains_prod_makes_fb_uses VALUES (:oid, :cid, :pid, :bid, :sid, :o_time, :amount, :total_price, :actual_payment, :completed, :rating, :f_time, :reviews)';
+  #g.conn.execute(text(cmd), oid=max_oid+1, cid=code, pid=request.form['pid'], bid=bid, sid=sid, o_time=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), amount=request.form['amount'], total_price=total_price, actual_payment=actual_payment, completed='False', rating=None, f_time=None, reviews=None);
+
+
+#   try:
+  g.conn.execute(text(cmd), iid = new_iid, brand = brand, size = size, original_price = original_price, weight =weight, name = name, link = link);
+  # except:
+#     render_template('error.html'), 404
+
+  cursor = g.conn.execute("SELECT MAX(U.pid) from products_post_has as U")
+  new_pid = 0
+  for result in cursor:
+    new_pid = str(int(result.values()[0]) + 1)
+  print new_pid
+  cursor.close()
+
+#   sid = 0
+#   print "loginin", len(login_user)
+#   if len(login_user) == 3:
+#     sid = login_user[2]
+#   else:
+#     render_template('error.html'), 404
+  # else:
+  #   cursor = g.conn.execute("SELECT MAX(s.sid) from seller as s")
+  #   for result in cursor:
+  #     sid = str(int(result.values()[0]) + 1) 
+
+# find uid
+  cursor = g.conn.execute("SELECT s.sid, u.uid FROM seller s RIGHT JOIN users u ON s.uid=u.uid WHERE u.username='%s'" %username)
+  if cursor.rowcount == 0:
+    return page_not_found("No such user")
+  else:
+    sid, uid = list(cursor.first())
+    if not sid:
+      cursor = g.conn.execute("SELECT MAX(s.sid) from seller as s")
+      sid_max = int(list(cursor.first())[0])
+      sid = sid_max + 1
+    
+    
+
+  cmd = 'INSERT INTO products_post_has VALUES (:pid, :sid, :iid, :pname, :price, :number, :customized_description)';
+  
+  g.conn.execute(text(cmd), pid=new_pid, sid=str(sid), iid=new_iid, pname=name, price=price, number=number, customized_description=customized_description);
+  print "sucessful"
+#   except:
+#     return page_not_found('Unsuccessful insert')
+
+
+  return redirect('/stuff')
 
 # Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-  name = request.form['name']
-  print name
-  cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-  g.conn.execute(text(cmd), name1 = name, name2 = name);
-  return redirect('/')
+# @app.route('/add', methods=['POST'])
+# def add():
+#   name = request.form['name']
+#   print name
+#   cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
+#   g.conn.execute(text(cmd), name1 = name, name2 = name);
+#   return redirect('/')
 
 
-@app.route('/login')
-def login():
-    abort(401)
-    this_is_never_executed()
+# @app.route('/login')
+# def login():
+#     abort(401)
+#     this_is_never_executed()
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('error.html'), 404
+    return render_template('error.html', error = e), 404
 
 if __name__ == "__main__":
   import click
