@@ -143,6 +143,7 @@ def load_user(username):
     """
     input:  a unicode
     return: user object
+    by default username == '1', and I have no idea why
     """
     username = str(username)
     
@@ -176,7 +177,6 @@ def logout():
 # user models
 class User(UserMixin):
 	def __init__(self, username, pwd, uid):
-# 	def __init__(self, username):
 		self.id = username
 		self.password = pwd
 		self.id = str(uid)
