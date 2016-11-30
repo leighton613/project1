@@ -101,7 +101,6 @@ def login():
     """
 #     username = request.cookies.get('username')
 #     print 'login username:', username # None
-
 #     print username == None  # True
     if request.form['username'] == None:
   		return render_template('login.html')
@@ -145,18 +144,24 @@ def load_user(username):
     input:  a unicode
     return: user object
     """
-#     username = str(username)
-#     cursor = g.conn.execute("SELECT uid, password FROM users WHERE username='%s'" %username)
-#     if cursor.rowcount == 0:
-#     	cursor.close()
-#     	raise ValueError("no row")
-#     temp = list(cursor.first())
-#     print "THE cursor conten", temp
-#     uid, pwd = [str(i).rstrip() for i in temp]
-#     uid = int(uid)
+    username = str(username)
     
-#     curr_user = User(username, pwd, uid)
-    curr_user = User(username)
+    # by default:
+    if username == "1":
+    	return User(username, None, None)
+    
+    # with username input
+    cursor = g.conn.execute("SELECT uid, password FROM users WHERE username='%s'" %username)
+    if cursor.rowcount == 0:
+    	cursor.close()
+    	raise ValueError("no row")
+    temp = list(cursor.first())
+#     print "THE cursor conten", temp
+    uid, pwd = [str(i).rstrip() for i in temp]
+    uid = int(uid)
+    
+    curr_user = User(username, pwd, uid)
+#     curr_user = User(username)
 #     print "Successfully load user"
     return curr_user
 
@@ -164,16 +169,17 @@ def load_user(username):
 @app.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
-	logout_user()
+	logout_user() 
+	flash('Logged in successfully.')
 	return redirect('/')
 
 # user models
 class User(UserMixin):
-# 	def __init__(self, username, pwd, uid):
-	def __init__(self, username):
+	def __init__(self, username, pwd, uid):
+# 	def __init__(self, username):
 		self.id = username
-# 		self.password = pwd
-# 		self.id = str(uid)
+		self.password = pwd
+		self.id = str(uid)
 # #	
 # 	@property
 # 	def is_enticated(self):
@@ -253,8 +259,6 @@ def index():
 #   print request.args
 
   # DEBUG: login cookie
-#   username  = request.cookies.get('username')
-#   print 'index username:', username
   print 'current user index', current_user.get_id()
 
   #
