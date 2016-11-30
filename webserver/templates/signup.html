@@ -59,22 +59,38 @@
           background: #F0F0F0;
           border-radius: 6px;
         }
-            input[type="text"],
-            textarea,
-            select {
-              background: rgba(255,255,255,0.1);
-              border: none;
-              font-size: 15px;
-              height: auto;
-              margin: 0;
-              outline: 0;
-              padding: 15px;
-              width: 100%;
-              background-color: #E0E0E0;
-              color: #E0E0E0  ;
-              box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
-              margin-bottom: 10px;
-            }
+		input[type="text"],
+		textarea,
+		select {
+		  background: rgba(255,255,255,0.1);
+		  border: none;
+		  font-size: 15px;
+		  height: auto;
+		  margin: 0;
+		  outline: 0;
+		  padding: 15px;
+		  width: 100%;
+		  background-color: #E0E0E0;
+		  color: #003D79  ;
+		  box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+		  margin-bottom: 10px;
+		}
+		input[type="password"],
+		textarea,
+		select {
+		  background: rgba(255,255,255,0.1);
+		  border: none;
+		  font-size: 15px;
+		  height: auto;
+		  margin: 0;
+		  outline: 0;
+		  padding: 15px;
+		  width: 100%;
+		  background-color: #E0E0E0;
+		  color: #003D79  ;
+		  box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+		  margin-bottom: 10px;
+		}
 
     </style>
 
@@ -88,7 +104,7 @@
 
       <form method="POST" action="/sign_to_db">
         <p>UserName<span class="required">*</span>: <input type="text" name="username">
-        Password<span class="required">*</span>: <input type="text" name="password"> 
+        Password<span class="required">*</span>: <input type="password" name="password"> 
         E-mail<span class="required">*</span>: <input type="text" name="email">
         Phone: <input type="text" name="phone"> 
         Address: <input type="text" name="address"> 
@@ -101,7 +117,7 @@
         <form action="/">
             <p>Have an Account?</p>
         
-            <input type="submit" value="Guest Access">
+            <input type="submit" value="Login">
         </form> 
       
 

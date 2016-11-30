@@ -18,8 +18,10 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response, url_for, session
+from flask import flash, Flask, request, render_template, g, redirect, Response, url_for, session, Blueprint
+from flask.ext.login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
 import datetime
+
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -74,45 +76,124 @@ engine.execute("""INSERT INTO test(name) VALUES ('grace hopper'), ('alan turing'
 #
 
 
-@app.route('/', methods=['POST', 'GET'])
+###
+# This part deal with LOGIN
+###
+app.secret_key = 's3cr3t'
+login_manager = LoginManager()
+login_manager.session_protection = 'basic'
+login_manager.login_view = 'auth.login'
+login_manager.init_app(app)
+
+# auth = Blueprint('auth', __name__)
+
+@app.route('/login_page')
+def login_page():
+	return render_template('login.html')
+
+# @auth.route('/login', methods=['POST', 'GET'])
+@app.route('/login', methods=['POST', 'GET'])
 def login():
-      # DEBUG: login cookie
-    username = request.cookies.get('username')
-    print 'username:', username
+    """
+    1. get username, pwd from form
+    2. validate info
+    3. log user in -> index
+    """
+#     username = request.cookies.get('username')
+#     print 'login username:', username # None
+
+#     print username == None  # True
+    if request.form['username'] == None:
+  		return render_template('login.html')
   
     error = None
     if request.method == 'POST':
         if valid_login(request.form['username'],
                        request.form['password']):
-            return log_user_in(request.form['username'])
+            print "Valid User!"
+            
+            login_user(load_user(request.form['username']))
+            print "Succesfully log in! %s" %str(request.form['username'])
+            flash('Logged in successfully.')
+            
+            return redirect('/index')
         else:
             error = 'Invalid username/password'
     # the code below is executed if the request method
     # was GET or the credentials were invalid
     return render_template('login.html', error=error)
+  
     
 def valid_login(username, password):
-  
-  username = str(username)
-  print 'input username', username 
-  cursor = g.conn.execute("SELECT password FROM users WHERE username='%s'" %username)
-#   print 'rowcount', cursor.rowcount
-#   print 'right pwd', len(right_pwd)
-#   print 'input pwd', len(str(password))
-#   print right_pwd==str(password)
-  if cursor.rowcount == 0 or str(list(cursor.first())[0]).rstrip() != str(password):
-    return False
-  else:
-    return True
+	username = str(username)
+	print 'input username', username 
+	print 'input password', password
+	cursor = g.conn.execute("SELECT password FROM users WHERE username='%s'" %username)
+	if cursor.rowcount == 0:
+		print "no row in valid_login"
+		return False
+	actual_pwd = str(list(cursor.first())[0]).rstrip()
+	print 'actual password', actual_pwd
+	if actual_pwd != str(password):
+		return False
+	else:
+		return True
+    
+@login_manager.user_loader
+def load_user(username):
+    """
+    input:  a unicode
+    return: user object
+    """
+#     username = str(username)
+#     cursor = g.conn.execute("SELECT uid, password FROM users WHERE username='%s'" %username)
+#     if cursor.rowcount == 0:
+#     	cursor.close()
+#     	raise ValueError("no row")
+#     temp = list(cursor.first())
+#     print "THE cursor conten", temp
+#     uid, pwd = [str(i).rstrip() for i in temp]
+#     uid = int(uid)
+    
+#     curr_user = User(username, pwd, uid)
+    curr_user = User(username)
+#     print "Successfully load user"
+    return curr_user
 
-def log_user_in(username):
-  
-  # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
-  
-  return redirect('/index')
 
+@app.route('/logout', methods=['GET', 'POST'])
+@login_required
+def logout():
+	logout_user()
+	return redirect('/')
+
+# user models
+class User(UserMixin):
+# 	def __init__(self, username, pwd, uid):
+	def __init__(self, username):
+		self.id = username
+# 		self.password = pwd
+# 		self.id = str(uid)
+# #	
+# 	@property
+# 	def is_enticated(self):
+# 		return True
+# 		
+# 	@property
+# 	def is_active(self):
+# 		return True
+# 		
+# 	@property
+# 	def is_anonymous(self):
+# 		return False
+# 
+# 	def get_id(self):
+# 		return str(self.id)
+            
+
+###
+# Back to web application
+###
 
 @app.before_request
 def before_request():
@@ -155,6 +236,7 @@ def teardown_request(exception):
 # see for routing: http://flask.pocoo.org/docs/0.10/quickstart/#routing
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
+@app.route('/')
 @app.route('/index')
 def index():
   """
@@ -171,8 +253,9 @@ def index():
 #   print request.args
 
   # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
+#   username  = request.cookies.get('username')
+#   print 'index username:', username
+  print 'current user index', current_user.get_id()
 
   #
   # example of a database query
@@ -203,7 +286,7 @@ def index():
 
 @app.route('/signup')
 def signup():
-  return render_template("signup.html")
+	return render_template("signup.html")
   
 @app.route('/sign_to_db', methods=['POST'])
 def sign_to_db():
@@ -232,179 +315,183 @@ def sign_to_db():
 
 @app.route('/about')
 def about():
-  # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
-  
-  return render_template("about.html")
+	# DEBUG: login cookie
+	username = request.cookies.get('username')
+	print 'username:', username
+
+	return render_template("about.html")
 
 @app.route('/allDB')
 def allDB():
-  # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
-  
-  # Users
-  users = generate_table('users')
-  # Buyers
-  buyers = generate_table('buyer')
-  # SELLER
-  sellers = generate_table('seller')
-  # STD INFO
-  std_info = generate_table('standard_info')
-  # products_post_has
-  pro_post = generate_table('products_post_has')
-  # order_contains_prod_makes_fb_uses
-  order_fb = generate_table('order_contains_prod_makes_fb_uses')
-  # COUPON 
-  coupons = generate_table('coupon')
+	# DEBUG: login cookie
+	username = request.cookies.get('username')
+	print 'username:', username
+
+	# Users
+	users = generate_table('users')
+	# Buyers
+	buyers = generate_table('buyer')
+	# SELLER
+	sellers = generate_table('seller')
+	# STD INFO
+	std_info = generate_table('standard_info')
+	# products_post_has
+	pro_post = generate_table('products_post_has')
+	# order_contains_prod_makes_fb_uses
+	order_fb = generate_table('order_contains_prod_makes_fb_uses')
+	# COUPON 
+	coupons = generate_table('coupon')
 
 
-  context = dict(username=users, buyers=buyers, sellers=sellers, std_info=std_info, pro_post=pro_post, order_fb=order_fb, coupon=coupons)
-  return render_template("allDBfile.html", **context)
+	context = dict(username=users, buyers=buyers, sellers=sellers, std_info=std_info, pro_post=pro_post, order_fb=order_fb, coupon=coupons)
+	return render_template("allDBfile.html", **context)
 
 def generate_table(table_name):
-    '''
+	'''
     take a table name,
     return a table content in a list w/o header
     '''
-    cursor = g.conn.execute("SELECT * from %s;" % table_name)
-    cols = list(cursor.keys())
-    table_content = [cols]
-    for result in cursor:
-      '''
-      rec = []
-      for i in range(len(result)):
-        rec.append(result[i])
-      table_content.append(rec)
-    '''
-      table_content.append(list(result))
-    cursor.close()
-    return table_content
+	cursor = g.conn.execute("SELECT * from %s;" % table_name)
+	cols = list(cursor.keys())
+	table_content = [cols]
+	
+	for result in cursor:
+		'''
+		rec = []
+		for i in range(len(result)):
+		rec.append(result[i])
+		table_content.append(rec)
+		'''
+		table_content.append(list(result))
+	cursor.close()
+	return table_content
 
 # Products page
 @app.route('/products')
 def products():
-  # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
-  
-  cursor = g.conn.execute("WITH temp1(username, sid, pid, iid, pname, price, pdscp) AS (SELECT u.username, s.sid, p.pid, p.iid, p.pname, p.price,p.customized_description AS pdscp FROM products_post_has p, users as u, seller as s WHERE p.number > 0 AND u.uid=s.uid AND s.sid=p.sid), fb_count(pid, cnt) AS (SELECT pid, COUNT(*) AS cnt FROM order_contains_prod_makes_fb_uses GROUP BY pid) SELECT t.pname, t.price, t.pdscp,  t.username, t.pid, t.iid, c.cnt, t.sid FROM temp1 as t LEFT JOIN fb_count AS c ON t.pid=c.pid")
-  prods = []
-  for record in cursor:
-    record = list(record)
-    rec = {'username':record[3], 'fb':record[6], 'product_name':record[0], 'price':record[1], 'product_dscp':record[2],'pid':record[4], 'iid':record[5], 'cnt':record[6], 'sid':record[7]}
-    prods.append(rec)
-  cursor.close()
-  return render_template('products.html', products = prods)
+	# DEBUG: login cookie
+	username = request.cookies.get('username')
+	print 'username:', username
+
+	cursor = g.conn.execute("WITH temp1(username, sid, pid, iid, pname, price, pdscp) AS (SELECT u.username, s.sid, p.pid, p.iid, p.pname, p.price,p.customized_description AS pdscp FROM products_post_has p, users as u, seller as s WHERE p.number > 0 AND u.uid=s.uid AND s.sid=p.sid), fb_count(pid, cnt) AS (SELECT pid, COUNT(*) AS cnt FROM order_contains_prod_makes_fb_uses GROUP BY pid) SELECT t.pname, t.price, t.pdscp,  t.username, t.pid, t.iid, c.cnt, t.sid FROM temp1 as t LEFT JOIN fb_count AS c ON t.pid=c.pid")
+	prods = []
+	for record in cursor:
+		record = list(record)
+		rec = {'username':record[3], 'fb':record[6], 'product_name':record[0], 'price':record[1], 'product_dscp':record[2],'pid':record[4], 'iid':record[5], 'cnt':record[6], 'sid':record[7]}
+		prods.append(rec)
+	cursor.close()
+	return render_template('products.html', products = prods)
 
 @app.route('/products/prod-<num>')
 def product_single(num):
-  """
-  num : int pid
-  """
-  # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
-  
-  # extract and assign information for this product
-  cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.customized_description, u.username, i.original_price, i.iid, i.brand, i.link FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%s;" % num)
-  assert cursor.rowcount == 1
-  result = cursor.first()
-  sid, pid, product_name, price, description, post_username, orig_price, iid, brand, link = list(result)
-  
-  # extract review data and buyer name for this product
-  cursor = g.conn.execute("SELECT u.username, f.f_time, f.rating, f.amount, f.reviews FROM order_contains_prod_makes_fb_uses f, buyer b, users u WHERE f.pid=%s AND f.bid=b.bid AND b.uid=u.uid" % num)
-  fb_results = []
-  if cursor.rowcount:
-    for fb in cursor:
-      fb = list(fb)
-      fb_single = {'fb_user':fb[0], 'f_time':fb[1], 'rating':fb[2], 'amount':fb[3], 'review':fb[4]}
-      fb_results.append(fb_single)
-  cursor.close()
-  
-  return render_template('product-single.html', num=num, product_name=product_name, price=price, post_username=post_username, iid=iid, brand=brand, orig_price=orig_price, description=description, fb=fb_results, link=link, num_fb=len(fb_results))
+	"""
+	num : int pid
+	"""
+	# DEBUG: login cookie
+	username = request.cookies.get('username')
+	print 'username:', username
+
+	# extract and assign information for this product
+	cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.customized_description, u.username, i.original_price, i.iid, i.brand, i.link FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%s;" % num)
+	assert cursor.rowcount == 1
+	result = cursor.first()
+	sid, pid, product_name, price, description, post_username, orig_price, iid, brand, link = list(result)
+
+	# extract review data and buyer name for this product
+	cursor = g.conn.execute("SELECT u.username, f.f_time, f.rating, f.amount, f.reviews FROM order_contains_prod_makes_fb_uses f, buyer b, users u WHERE f.pid=%s AND f.bid=b.bid AND b.uid=u.uid" % num)
+	fb_results = []
+	if cursor.rowcount:
+		for fb in cursor:
+			fb = list(fb)
+			fb_single = {'fb_user':fb[0], 'f_time':fb[1], 'rating':fb[2], 'amount':fb[3], 'review':fb[4]}
+			fb_results.append(fb_single)
+	cursor.close()
+
+	return render_template('product-single.html', num=num, product_name=product_name, price=price, post_username=post_username, iid=iid, brand=brand, orig_price=orig_price, description=description, fb=fb_results, link=link, num_fb=len(fb_results))
 
 @app.route('/products/make-order-prod-<num>')
 def make_order(num):
     # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
-  
-  # extract and assign information for this product
-  cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.number, p.customized_description, u.username, i.original_price, i.iid, i.brand, i.link FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%s;" % num)
-  assert cursor.rowcount == 1
-  result = cursor.first()
-  sid, pid, product_name, price, number, description, post_username, orig_price, iid, brand, link = list(result)
-  
-  return render_template('order-single.html', num=num, product_name=product_name, price=price, number=number, post_username=post_username, iid=iid, brand=brand, orig_price=orig_price, description=description, link=link)
+	username = request.cookies.get('username')
+	print 'username:', username
+
+	# extract and assign information for this product
+	cursor = g.conn.execute("SELECT p.sid, p.pid, p.pname, p.price, p.number, p.customized_description, u.username, i.original_price, i.iid, i.brand, i.link FROM products_post_has p, users u, seller s, standard_info i WHERE u.uid=s.uid AND s.sid=p.sid AND p.iid=i.iid AND pid=%s;" % num)
+	assert cursor.rowcount == 1
+	result = cursor.first()
+	sid, pid, product_name, price, number, description, post_username, orig_price, iid, brand, link = list(result)
+
+	return render_template('order-single.html', num=num, product_name=product_name, price=price, number=number, post_username=post_username, iid=iid, brand=brand, orig_price=orig_price, description=description, link=link)
 
 
 @app.route('/profiles')
 def profiles():
-    # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
-  
-  cursor = g.conn.execute("SELECT uid, username, address, phone, email FROM users;")
-  results = []
-  for rec in cursor: 
-    rec = list(rec)
-    results.append({'uid':rec[0], 'username':rec[1], 'address':rec[2], 'phone':rec[3], 'email':rec[4]})
-  return render_template('profiles.html', results=results)
+	# DEBUG: login cookie
+	username = request.cookies.get('username')
+	print 'username:', username
+
+	cursor = g.conn.execute("SELECT uid, username, address, phone, email FROM users;")
+	results = []
+	for rec in cursor: 
+		rec = list(rec)
+		results.append({'uid':rec[0], 'username':rec[1], 'address':rec[2], 'phone':rec[3], 'email':rec[4]})
+	return render_template('profiles.html', results=results)
   
     
 @app.route('/profiles/<username>')
 @app.route('/<username>')
 def profile(username):
-  """
-  username : str
-  """
-# DEBUG: login cookie
-#   username = request.cookies.get('username')
-#   print 'username:', username
-  
-  username = str(username)
-   # show user information on this page
-  cursor = g.conn.execute("SELECT u.uid, u.email, u.address, u.phone FROM users AS u WHERE u.username='%s';" % username)
-  if cursor.rowcount == 1:
-    result = cursor.first()
-    uid, email, addr, phone = list(result)
-  else:
-    cursor.close()
-    return page_not_found('no user record')
-  
-  return render_template('profile-single.html', username=username, uid=uid, email=email, addr=addr, phone=phone)
+	"""
+	username : str
+	"""
+	# DEBUG: login cookie
+	#   username = request.cookies.get('username')
+	#   print 'username:', username
+	if username == None:
+		return login
+	
+	
+	username = str(username)
+	# show user information on this page
+	cursor = g.conn.execute("SELECT u.uid, u.email, u.address, u.phone FROM users AS u WHERE u.username='%s';" % username)
+	if cursor.rowcount == 1:
+		result = cursor.first()
+		uid, email, addr, phone = list(result)
+	else:
+		cursor.close()
+		return page_not_found('no user record')
+
+	return render_template('profile-single.html', username=username, uid=uid, email=email, addr=addr, phone=phone)
 
 
 
 @app.route('/coupons')
 def coupons():
-# DEBUG: login cookie
-#   username = request.cookies.get('username')
-#   print 'username:', username
+	# DEBUG: login cookie
+	#   username = request.cookies.get('username')
+	#   print 'username:', username
 
   
-  cursor = g.conn.execute("SELECT c.cid, c.description, c.discount, c.condition, c.expired_time FROM coupon c;")
-  results = []
-  for rec in cursor:
-    rec = list(rec)
-    results.append({'code':rec[0], 'dscp':rec[1], 'discount':rec[2], 'condition':rec[3], 'expired_time':rec[4]})
-  cursor.close()
-  return render_template('coupons.html', coupons=results)
+	cursor = g.conn.execute("SELECT c.cid, c.description, c.discount, c.condition, c.expired_time FROM coupon c;")
+	results = []
+	for rec in cursor:
+		rec = list(rec)
+		results.append({'code':rec[0], 'dscp':rec[1], 'discount':rec[2], 'condition':rec[3], 'expired_time':rec[4]})
+	cursor.close()
+	return render_template('coupons.html', coupons=results)
 
 @app.route('/orders')
 def orders():
-  # DEBUG: login cookie
-  username = request.cookies.get('username')
-  print 'username:', username
-  
-  cursor = g.conn.execute("SELECT o.oid, u1.username, u2.username, o.o_time, o.completed, o.f_time FROM order_contains_prod_makes_fb_uses o, products_post_has p, seller s, buyer b, users u1, users u2 WHERE p.pid=o.pid AND o.sid=s.sid AND u1.uid=s.uid AND o.bid=b.bid AND b.uid=u2.uid;")
-  results = []
-  for rec in cursor:
-    oid, seller, buyer, o_time, completed, reviewd = list(rec)
-    results.append({'oid': oid, 'seller':seller, 'buyer':buyer, 'o_time':o_time, 'completed':completed, 'reviewd':reviewd})
-  return render_template('orders.html', results=results)
+	# DEBUG: login cookie
+	username = request.cookies.get('username')
+	print 'username:', username
+
+	cursor = g.conn.execute("SELECT o.oid, u1.username, u2.username, o.o_time, o.completed, o.f_time FROM order_contains_prod_makes_fb_uses o, products_post_has p, seller s, buyer b, users u1, users u2 WHERE p.pid=o.pid AND o.sid=s.sid AND u1.uid=s.uid AND o.bid=b.bid AND b.uid=u2.uid;")
+	results = []
+	for rec in cursor:
+		oid, seller, buyer, o_time, completed, reviewd = list(rec)
+		results.append({'oid': oid, 'seller':seller, 'buyer':buyer, 'o_time':o_time, 'completed':completed, 'reviewd':reviewd})
+	return render_template('orders.html', results=results)
 
 # submit an order
 # 1. check information validation

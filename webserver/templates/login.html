@@ -59,22 +59,39 @@
           background: #F0F0F0;
           border-radius: 6px;
         }
-            input[type="text"],
-            textarea,
-            select {
-              background: rgba(255,255,255,0.1);
-              border: none;
-              font-size: 15px;
-              height: auto;
-              margin: 0;
-              outline: 0;
-              padding: 15px;
-              width: 100%;
-              background-color: #E0E0E0;
-              color: #003D79  ;
-              box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
-              margin-bottom: 10px;
-            }
+		input[type="text"],
+		textarea,
+		select {
+		  background: rgba(255,255,255,0.1);
+		  border: none;
+		  font-size: 15px;
+		  height: auto;
+		  margin: 0;
+		  outline: 0;
+		  padding: 15px;
+		  width: 100%;
+		  background-color: #E0E0E0;
+		  color: #003D79  ;
+		  box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+		  margin-bottom: 10px;
+		}
+		input[type="password"],
+		textarea,
+		select {
+		  background: rgba(255,255,255,0.1);
+		  border: none;
+		  font-size: 15px;
+		  height: auto;
+		  margin: 0;
+		  outline: 0;
+		  padding: 15px;
+		  width: 100%;
+		  background-color: #E0E0E0;
+		  color: #003D79  ;
+		  box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+		  margin-bottom: 10px;
+		}
+
 
     </style>
 
@@ -89,18 +106,18 @@
     {{error}}
     </p>
 
-      <form method="POST" action="/">
+      <form method="POST" action="/login">
         <p>UserName: <input type="text" name="username">
-        Password: <input type="text" name="password"> <input type="submit" value="log in"></p>
+        Password: <input type="password" name="password"> <input type="submit" value="log in"></p>
       </form>
       <form action="/index">
             <p>Browsing?</p>
             <input type="submit" value="Guest Access">
       </form> 
-        <form action="#">
+        <form action="/signup">
             <p>New user?</p>
         
-            <input type="submit" value="Guest Access">
+            <input type="submit" value="Sigh Up">
         </form> 
       
 
