@@ -2,21 +2,13 @@
 
 Install libraries
 
-        pip install click, flask, sqlalchemy
-
-
-Edit `server.py` to set your database URI
-
-        DATABASEURI = "<your database uri>"
+        pip install click, flask, sqlalchemy, flash-login
 
 
 Run it in the shell
 
 
-        python server.py
+        bash setup.sh
 
-Get help:
-
-        python server.py --help
 
       
